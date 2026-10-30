@@ -93,7 +93,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
         return queryset.order_by("-transaction_date", "-created_at")
 
-    def perform_create(self, serializer)
+    def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
 

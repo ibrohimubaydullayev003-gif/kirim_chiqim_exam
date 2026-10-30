@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from .models import Category, Transaction
-
+from .services import get_exchange_rate_to_uzs
 User = get_user_model()
 
 
@@ -131,14 +131,28 @@ class TransactionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"currency": "Qo'llab-quvvatlanmaydigan valyuta."})
         return attrs
 
-    def _calculate_conversion(self, validated_data, instance=None):
-        """Valyuta kursi va UZS summasini har safar server hisoblaydi."""
-        amount = validated_data.get("amount", instance.amount if instance else None)
-        currency = validated_data.get("currency", instance.currency if instance else Transaction.Currency.UZS,)
-        rate = Decimal(str(settings.CURRENCY_EXCHANGE_RATES[currency]))
-        converted_amount = (amount * rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        validated_data["exchange_rate"] = rate
-        validated_data["amount_uzs"] = converted_amount
+    def _calculate_conversion(self, validated_data):
+        """
+        API dan olingan kurs yordamida summani UZS ga aylantiradi.
+        """
+
+        amount = validated_data["amount"]
+        currency = validated_data["currency"]
+
+        # Kursni tashqi API dan olamiz.
+        exchange_rate = get_exchange_rate_to_uzs(currency)
+
+        # Summani UZS ga aylantiramiz.
+        amount_uzs = (amount * exchange_rate).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+        # Hisoblangan qiymatlarni saqlashga tayyorlaymiz.
+        validated_data["exchange_rate"] = exchange_rate
+        validated_data["amount_uzs"] = amount_uzs
+
+        return validated_data
 
     def create(self, validated_data):
         self._calculate_conversion(validated_data)
