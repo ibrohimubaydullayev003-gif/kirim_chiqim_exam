@@ -25,7 +25,6 @@ class Category(models.Model):
         verbose_name_plural = "Kategoriyalar"
 
     def clean(self):
-        """Tranzaksiyasi bor kategoriya turini almashtirib yuborishga yo'l qo'ymaymiz."""
         super().clean()
         if self.pk:
             old_kind = Category.objects.filter(pk=self.pk).values_list("kind", flat=True).first()

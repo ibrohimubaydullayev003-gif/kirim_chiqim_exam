@@ -132,23 +132,21 @@ class TransactionSerializer(serializers.ModelSerializer):
         return attrs
 
     def _calculate_conversion(self, validated_data):
-        """
-        API dan olingan kurs yordamida summani UZS ga aylantiradi.
-        """
+
 
         amount = validated_data["amount"]
         currency = validated_data["currency"]
 
-        # Kursni tashqi API dan olamiz.
+     
         exchange_rate = get_exchange_rate_to_uzs(currency)
 
-        # Summani UZS ga aylantiramiz.
+     
         amount_uzs = (amount * exchange_rate).quantize(
             Decimal("0.01"),
             rounding=ROUND_HALF_UP,
         )
 
-        # Hisoblangan qiymatlarni saqlashga tayyorlaymiz.
+      
         validated_data["exchange_rate"] = exchange_rate
         validated_data["amount_uzs"] = amount_uzs
 

@@ -11,17 +11,13 @@ CACHE_TIMEOUT = 60 * 60
 
 
 def get_exchange_rate_to_uzs(currency):
-    """
-    Markaziy bank API orqali valyuta kursini oladi.
-    """
+
 
     currency = currency.upper()
 
-    # So'mni so'mga aylantirish kursi 1 ga teng.
     if currency == "UZS":
         return Decimal("1.0000")
 
-    # Oldin API dan olingan kurs saqlanganmi, tekshiramiz.
     cached_rates = cache.get(CACHE_KEY)
 
     if cached_rates is not None:
@@ -40,7 +36,6 @@ def get_exchange_rate_to_uzs(currency):
 
     rates = {}
 
-    # API qaytargan valyutalarni ko'rib chiqamiz.
     for item in data:
         code = item.get("Ccy")
 
@@ -59,7 +54,6 @@ def get_exchange_rate_to_uzs(currency):
             "currency": "Markaziy bank API dan kurslar olinmadi."
         })
 
-    # Barcha valyuta kurslarini bir soatga saqlaymiz.
     cache.set(CACHE_KEY, rates, CACHE_TIMEOUT)
 
     if currency not in rates:
